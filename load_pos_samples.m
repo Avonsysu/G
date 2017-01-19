@@ -9,7 +9,7 @@ n = size(TestG50,2);
 aspect_ratio_sum = 0;
 num_pos_samples = n;
 for k = 1:n,
-    boxes = TestG50(1).Query.idlocate;
+    boxes = TestG50(k).Query.idlocate;
     
 	aspect_ratio_sum = aspect_ratio_sum + sum(boxes(:,3) ./ boxes(:,4));
 	%num_pos_samples = num_pos_samples + 1;
@@ -64,8 +64,8 @@ progress();
 for k = 1:n,
 	%load image and ground truth bounding boxes (x,y,w,h)
 	%[boxes, im] = dataset_image(dataset, class, images{k});
-    image = TestG50(n).Query.imname;
-    boxes = TestG50(n).Query.idlocate;
+    image = TestG50(k).Query.imname;
+    boxes = TestG50(k).Query.idlocate;
     im = imread([paths.ps 'Image/SSM/' image]);
 
 	ratio = boxes(3) / boxes(4) / aspect_ratio;
@@ -104,14 +104,14 @@ for k = 1:n,
 
     %store the sample
     pos_samples(:,:,:,idx) = sample;
-    pos_ids{1,idx} = TestG50(n).Query.idname;
+    pos_ids{1,idx} = TestG50(k).Query.idname;
     idx = idx + 1;
     
     if sampling.flip_positives,
         %store a horizontally flipped version too
         sample = get_features(patch(:, end:-1:1, :), features, cell_size);
         pos_samples(:,:,:,idx) = sample;
-        pos_ids{1,idx} = TestG50(n).Query.idname;
+        pos_ids{1,idx} = TestG50(k).Query.idname;
         idx = idx + 1;
     end
     

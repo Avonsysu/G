@@ -33,7 +33,6 @@ load_pos_samples;
 num_pos_samples = size(pos_samples,4);
 sample_sz = size(pos_samples);
 
-
 %now the negatives
 disp('Loading negative samples...')
 
@@ -49,6 +48,7 @@ for n = 1 : size(Train,1)
        images = [images;image]; 
    end
 end
+
 n = numel(images);
 
 %dense sampling
@@ -87,8 +87,7 @@ for f = 1:n,
     
     %extract features 
     x = get_features(im, features, cell_size);
-
-    
+  
     %extract subwindows, given the specified stride
     for r = 1 : stride_sz(1) : size(x,1) - sample_sz(1) + 1,
         for c = 1 : stride_sz(2) : size(x,2) - sample_sz(2) + 1
