@@ -7,7 +7,7 @@
 
 %path where cache files will be saved, and where each dataset is located
 paths = [];
-paths.cache = 'data/detector_cache/';  %cache path
+paths.cache = './data/detector_cache/';  %cache path
 paths.ps = '/home/share/yafang/dataset/';  %ps path
 
 

@@ -1,6 +1,9 @@
 disp('Loading positive samples...')
 
-n = size(TestG50,1);
+%compute time
+tic;
+
+n = size(TestG50,2);
 
 %first, count positive samples and figure out average aspect ratio
 aspect_ratio_sum = 0;
@@ -46,17 +49,17 @@ sample = get_features(zeros(patch_sz), features, cell_size);
 
 %allocate results array
 if ~sampling.flip_positives,
-	pos_samples = zeros([length(sample), num_pos_samples], 'single');
+	pos_samples = zeros([size(sample), num_pos_samples], 'single');
     pos_ids = cell(1,num_pos_samples);
 else  %allocate twice the samples, for flipped versions
-	pos_samples = zeros([length(sample), 2 * num_pos_samples], 'single');
+	pos_samples = zeros([size(sample), 2 * num_pos_samples], 'single');
     pos_ids = cell(1,2 * num_pos_samples);
 end
 idx = 1;
 
 %if debug_pos_samples, figure, end
 
-%progress();
+progress();
 
 for k = 1:n,
 	%load image and ground truth bounding boxes (x,y,w,h)
@@ -71,7 +74,7 @@ for k = 1:n,
 	xc = boxes(1) + boxes(3) / 2;
 	yc = boxes(2) + boxes(4) / 2;
     
-    sz = object_sz / object_sz(1) * boxes(p,4);  %rescale to have same height
+    sz = object_sz / object_sz(1) * boxes(4);  %rescale to have same height
 
     %apply padding in all directions
     sz = (1 + padding) .* sz;
@@ -100,14 +103,14 @@ for k = 1:n,
     sample = get_features(patch, features, cell_size);
 
     %store the sample
-    pos_samples(:,idx) = sample;
+    pos_samples(:,:,:,idx) = sample;
     pos_ids{1,idx} = TestG50(n).Query.idname;
     idx = idx + 1;
     
     if sampling.flip_positives,
         %store a horizontally flipped version too
         sample = get_features(patch(:, end:-1:1, :), features, cell_size);
-        pos_samples(:,idx) = sample;
+        pos_samples(:,:,:,idx) = sample;
         pos_ids{1,idx} = TestG50(n).Query.idname;
         idx = idx + 1;
     end
@@ -118,21 +121,22 @@ end
 %trim any uninitialized samples at the end
 num_rejected = size(pos_samples,4) - idx + 1;
 if num_rejected > 0,
-    pos_samples(:,idx : end) = [];
+    pos_samples(:,:,:,idx : end) = [];
 end
 
 %print some debug info
 disp(['Loaded ' int2str(size(pos_samples,4)) ' positive samples. Rejected '...
 	int2str(num_rejected) ' (wrong aspect ratio).']);
 
+disp(['cost time:',num2str(toc)]);
+
 %save the results
 if ~exist(paths.cache, 'dir'),
 	mkdir(paths.cache)
 end
-cache_file = [paths.cache 'pos_samples_PS.mat'];
 
 try  %use 7.3 format, otherwise Matlab *won't* save matrices >2GB, silently
-	save(cache_file, 'pos_ids', 'pos_samples', 'num_pos_samples','patch_sz', 'object_sz', '-v7.3')
+	save(pos_cache_file, 'pos_ids', 'pos_samples', 'num_pos_samples','patch_sz', 'object_sz', '-v7.3')
 catch  %#ok<CTCH>  if it's not supported just use whatever is the default
-	save(cache_file, 'pos_ids', 'pos_samples', 'num_pos_samples','patch_sz', 'object_sz')
+	save(pos_cache_file, 'pos_ids', 'pos_samples', 'num_pos_samples','patch_sz', 'object_sz')
 end

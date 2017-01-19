@@ -1,17 +1,21 @@
 %path where cache files will be saved, and where each dataset is located
 clear samples;  %avoid stressing memory use
-cache_file = [paths.cache 'neg_samples_PS.mat'];
+
+neg_cache_file = [paths.cache 'neg_samples_PS.mat'];
+pos_cache_file = [paths.cache 'pos_samples_PS.mat'];
 
 %current parameters, to compare against the cache file
 new_parameters = struct('sampling',sampling, 'features',features, 'cell_size',cell_size, ...
 	'padding_cells',padding_cells, 'object_size',object_size);
 
-if exist(cache_file, 'file'),
-	load(cache_file)  %load data and parameters
+if exist(neg_cache_file, 'file'),
+	load(neg_cache_file)  %load data and parameters
 	
 	%if the parameters are the same, we're done
 	if isequal(parameters, new_parameters),
 		disp('Reloaded samples from cache.')
+        
+        load(pos_cache_file)
 		
 		%compute padding, relative to the object size
 		padding = (patch_sz - object_sz) ./ object_sz;
@@ -20,24 +24,26 @@ if exist(cache_file, 'file'),
 	end
 end
 
-
 load([paths.ps 'annotation/test/train_test/Train.mat']);
 load([paths.ps 'annotation/test/train_test/TestG50.mat']);
 
-
 %otherwise, start from scratch. first, load the positive samples
 load_pos_samples;
+
 num_pos_samples = size(pos_samples,4);
 sample_sz = size(pos_samples);
 
+
 %now the negatives
 disp('Loading negative samples...')
+
+%compute time
+tic;
 
 %list training image files for all classes
 %images = dataset_list(dataset, 'train', class, false);  %skip images with this class
 images = {};
 for n = 1 : size(Train,1)
-%for n = 1 : 3
    for k = 1 : size(Train{n,1}.scene,2)
        image = Train{n,1}.scene(k).imname;
        images = [images;image]; 
@@ -82,9 +88,10 @@ for f = 1:n,
     %extract features 
     x = get_features(im, features, cell_size);
 
+    
     %extract subwindows, given the specified stride
     for r = 1 : stride_sz(1) : size(x,1) - sample_sz(1) + 1,
-        for c = 1 : stride_sz(2) : size(x,2) - sample_sz(2) + 1,
+        for c = 1 : stride_sz(2) : size(x,2) - sample_sz(2) + 1
             %store the sample
             samples(:,:,:,idx) = x(r : r+sample_sz(1)-1, c : c+sample_sz(2)-1, :);
             idx = idx + 1;
@@ -94,7 +101,6 @@ for f = 1:n,
     progress(f, n);
 end
 
-
 assert(idx > 1, 'No valid negative samples to load.')
 
 %trim any uninitialized samples at the end
@@ -102,14 +108,17 @@ if idx - 1 < size(samples,4),
 	samples(:,:,:, idx : end) = [];
 end
 
-%save the results
-if ~exist(paths.cache, 'dir'),
-	mkdir(paths.cache)
-end
+disp(['Loaded ' int2str(size(samples,4)) ' negtive samples.  cost time' num2str(toc)]);
+
+% %save the results
+% if ~exist(paths.cache, 'dir'),
+% 	mkdir(paths.cache)
+% end
+
 parameters = new_parameters;
 
 try  %use 7.3 format, otherwise Matlab *won't* save matrices >2GB, silently
-	save(cache_file, 'samples', 'parameters', '-v7.3')
+	save(neg_cache_file, 'samples', 'parameters', '-v7.3')
 catch  %#ok<CTCH>  if it's not supported just use whatever is the default
-	save(cache_file, 'samples', 'parameters', 'object_sz')
+	save(neg_cache_file, 'samples', 'parameters')
 end
