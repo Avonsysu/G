@@ -1,6 +1,6 @@
 %path where cache files will be saved, and where each dataset is located
 clear samples;  %avoid stressing memory use
-cache_file = [paths.cache 'circulant_samples_PS.mat'];
+cache_file = [paths.cache 'neg_samples_PS.mat'];
 
 %current parameters, to compare against the cache file
 new_parameters = struct('sampling',sampling, 'features',features, 'cell_size',cell_size, ...
@@ -57,9 +57,11 @@ num_neg_samples = numel(images) * prod(floor(sampling.neg_image_size / cell_size
 %num_neg_samples = numel(images) * floor(sample_sz(3) / stride_sz);
 
 %initialize data structure for all samples, starting with positives
-samples = cat(4, pos_samples, zeros([sample_sz(1:3), num_neg_samples], 'single'));
+samples = zeros([sample_sz(1:3), num_neg_samples], 'single');
+
 progress();
-idx = num_pos_samples + 1;  %index of next sample
+
+idx = 1;  %index of next sample
 
 for f = 1:n,
     %load image and bounding box info
@@ -93,7 +95,7 @@ for f = 1:n,
 end
 
 
-assert(idx > num_pos_samples + 1, 'No valid negative samples to load.')
+assert(idx > 1, 'No valid negative samples to load.')
 
 %trim any uninitialized samples at the end
 if idx - 1 < size(samples,4),
@@ -107,7 +109,7 @@ end
 parameters = new_parameters;
 
 try  %use 7.3 format, otherwise Matlab *won't* save matrices >2GB, silently
-	save(cache_file, 'samples', 'parameters', 'num_pos_samples', 'patch_sz', 'object_sz', '-v7.3')
+	save(cache_file, 'samples', 'parameters', '-v7.3')
 catch  %#ok<CTCH>  if it's not supported just use whatever is the default
-	save(cache_file, 'samples', 'parameters', 'num_pos_samples', 'patch_sz', 'object_sz')
+	save(cache_file, 'samples', 'parameters', 'object_sz')
 end
