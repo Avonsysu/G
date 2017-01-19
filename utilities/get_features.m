@@ -37,8 +37,8 @@ function x = get_features(im, features, cell_size)
         if size(im,3) == 1,
 			im = repmat(im, [1, 1, 3]);  %from grayscale to RGB
         end
-        blockSize = 16;
-        overlapSize = 8;
+        blockSize = 8;
+        overlapSize = 0;
  %       I = imresize(im,[128,48])/255; 
         I = im;
         [M N L] = size(I);
@@ -49,7 +49,8 @@ function x = get_features(im, features, cell_size)
           for j=1:b
               patch = I((i-1)*(blockSize-overlapSize)+1:(i-1)*(blockSize-overlapSize)+blockSize,(j-1)*(blockSize-overlapSize)+1:(j-1)*(blockSize-overlapSize)+blockSize,:);
               color_feature = color(double(patch));
-              x(i,j,:) = color_feature;
+              hog_feature = double(hog(patch));
+              x(i,j,:) = [color_feature;hog_feature];
           end
         end 
 	end
