@@ -10,12 +10,21 @@ end
 %make sure the needed functions are in the path of all workers (work around a MATLAB bug)
 addpath('./detection', './evaluation', './training', './utilities', './libraries')
 
+if ~sampling.flip_positives,
+	step = 1;
+else
+    step = 2;
+end
 
-for i = 1 : num_pos_samples,
+n = step * num_pos_samples;
+
+n = 1
+
+for i = 1 : step : n,
     
-    pos_id = pos_ids(i * 2);
+    pos_id = pos_ids(i);
     
-    all_samples = cat(4,pos_samples(:,:,:,2 * i-1 : 2 * i),samples);
+    all_samples = cat(4,pos_samples(:,:,:,i : i + step - 1),samples(:,:,:,1:100));
     
     sz = size(all_samples);
     N = sqrt(prod(sz(1:2)));  %constant factor that makes the FFT/IFFT unitary
@@ -65,7 +74,7 @@ for i = 1 : num_pos_samples,
                 %fill vector of sample labels for this frequency
                 y(:) = neg_labels(r,c);
                 %y(1:num_pos_samples) = pos_labels(r,c);
-                y(1:2) = pos_labels(r,c);
+                y(1:step) = pos_labels(r,c);
 
                 %train classifier for this frequency
                 weights(r,c,:) = linear_training(training, double(permute(samples(r,c,:,:), [4, 3, 1, 2])), y);
@@ -102,7 +111,7 @@ for i = 1 : num_pos_samples,
                 %fill vector of sample labels for this frequency
                 y(:) = neg_labels(r,c);
                 %y(1:num_pos_samples) = pos_labels(r,c);
-                y(1:2) = pos_labels(r,c);
+                y(1:step) = pos_labels(r,c);
 
                 row_weights(c,:) = linear_training(training, double(permute(samples_chunks{r}(1,c,:,:), [4, 3, 1, 2])), y);
 

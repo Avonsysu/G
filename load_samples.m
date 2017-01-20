@@ -30,7 +30,6 @@ load([paths.ps 'annotation/test/train_test/TestG50.mat']);
 %otherwise, start from scratch. first, load the positive samples
 load_pos_samples;
 
-num_pos_samples = size(pos_samples,4);
 sample_sz = size(pos_samples);
 
 %now the negatives

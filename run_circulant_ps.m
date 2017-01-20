@@ -31,10 +31,10 @@ training.bias_term = 0;
 
 %make sure the needed functions are in the path
 %addpath('./detection', './evaluation', './training', './utilities', './libraries')
-addpath('./utilities')
+addpath('./training', './utilities', './libraries')
 run('/home/share/yafang/vlfeat-0.9.20/toolbox/vl_setup');
 
 %main script for training and evaluation
-%run_circulant;
+run_circulant;
 
-load_samples;
+%load_samples;

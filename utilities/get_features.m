@@ -38,10 +38,9 @@ function x = get_features(im, features, cell_size)
 			im = repmat(im, [1, 1, 3]);  %from grayscale to RGB
         end
         blockSize = cell_size;
- %      overlapSize = 0;
- %      I = imresize(im,[128,48])/255; 
         I = im;
         [M N L] = size(I);
+        
         a = floor(M/blockSize);
         b = floor(N/blockSize);
         x = [];

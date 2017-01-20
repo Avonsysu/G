@@ -124,6 +124,8 @@ if num_rejected > 0,
     pos_samples(:,:,:,idx : end) = [];
 end
 
+num_pos_samples = size(pos_samples,4);
+
 %print some debug info
 disp(['Loaded ' int2str(size(pos_samples,4)) ' positive samples. Rejected '...
 	int2str(num_rejected) ' (wrong aspect ratio).']);
