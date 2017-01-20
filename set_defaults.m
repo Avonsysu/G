@@ -12,7 +12,7 @@ paths.ps = '/home/share/yafang/dataset/';  %ps path
 
 
 %whether to use PARFOR or not
-parallel = false;
+parallel = true;
 
 %whether to show template visualization and precision curves by default
 show_plots = false;
@@ -21,10 +21,10 @@ show_plots = false;
 show_detections = true;
 
 %whether to save the trained template weights
-save_weights = false;
+save_weights = true;
 
 %whether to save the resulting plots
-save_plots = true;
+save_plots = false;
 
 %feature parameters (more can be added easily in "get_features")
 features = [];
