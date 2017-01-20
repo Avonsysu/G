@@ -67,7 +67,7 @@ samples = zeros([sample_sz(1:3), num_neg_samples], 'single');
 
 progress();
 
-idx = 1;  %index of next sample
+idx = 1;
 
 for f = 1:n,
     %load image and bounding box info
