@@ -156,6 +156,6 @@ for i = 1 : step : n,
 end
 
 %run evaluation
-%evaluate_detector(dataset, class, weights, bias, object_sz, cell_size, features, ...
+%evaluate_detector( pos_id , weights, bias, object_sz, cell_size, features, ...
 %	detection, paths, save_file_name, save_plots, show_plots, show_detections, parallel);
 
