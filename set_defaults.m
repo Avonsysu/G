@@ -18,7 +18,7 @@ parallel = true;
 show_plots = false;
 
 %whether to show detection bounding boxes, in an interactive figure
-show_detections = true;
+show_detections = false;
 
 %whether to save the trained template weights
 save_weights = true;

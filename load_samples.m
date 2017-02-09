@@ -1,5 +1,6 @@
 %path where cache files will be saved, and where each dataset is located
 clear samples;  %avoid stressing memory use
+clear pos_samples;
 
 neg_cache_file = [paths.cache 'neg_samples_PS.mat'];
 pos_cache_file = [paths.cache 'pos_samples_PS.mat'];
@@ -10,7 +11,7 @@ new_parameters = struct('sampling',sampling, 'features',features, 'cell_size',ce
 
 if exist(neg_cache_file, 'file'),
 	load(neg_cache_file)  %load data and parameters
-	
+	samples = samples(:,:,:,1:10000);
 	%if the parameters are the same, we're done
 	if isequal(parameters, new_parameters),
 		disp('Reloaded samples from cache.')

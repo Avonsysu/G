@@ -18,7 +18,7 @@ end
 % n = 1
 % load([paths.ps 'annotation/test/train_test/TestG50.mat']);
 
-for i = 1800 : step : 1802,
+for i = 1801 : step : 1802,
     
     pos_id = pos_ids(i);
     
