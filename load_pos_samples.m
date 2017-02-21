@@ -70,7 +70,7 @@ for k = 1:n,
 
 	ratio = boxes(3) / boxes(4) / aspect_ratio;
 
-		%center coordinates
+	%center coordinates
 	xc = boxes(1) + boxes(3) / 2;
 	yc = boxes(2) + boxes(4) / 2;
     

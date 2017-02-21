@@ -15,7 +15,8 @@ cropping_cells = 4;  %should be an even number
 
 %negative sampling parameters
 sampling.neg_stride = 2/3;  %stride of grid sampling
-sampling.neg_image_size = [600 800];  %max. size of sampled images [rows, columns]
+sampling.neg_image_size = [480 640];  %max. size of sampled images [rows, columns]
+sampling.neg_samples_per_image = 5;
 
 %standard deviation and magnitude of regression targets
 target_sigma = 0.2;
@@ -38,4 +39,5 @@ run('/home/share/yafang/vlfeat-0.9.20/toolbox/vl_setup');
 %run_circulant;
 
 %load_samples;
-run_evaluation;
+%run_evaluation;
+run_evaluation_2;

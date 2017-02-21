@@ -59,8 +59,9 @@ function rects = detect(im, weights, bias, ...
 		y(:) = bias;  %add bias term
 		for f = 1:size(weights,3),
 			y = y + imfilter(z(:,:,f), weights(:,:,f));
-		end
-		
+            %yg = yg + imfilter(z(:,:,f), w(:,:,f));
+        end
+	
 		%suppress responses that touch the borders
 		y(1 : floor(size(weights,1)/2), :) = -inf;
 		y(end - floor(size(weights,1)/2) + 1 : end, :) = -inf;

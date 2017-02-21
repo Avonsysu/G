@@ -2,34 +2,37 @@
 clear samples;  %avoid stressing memory use
 clear pos_samples;
 
-neg_cache_file = [paths.cache 'neg_samples_PS.mat'];
+neg_cache_file = [paths.cache 'neg_samples_PS_2.mat'];
 pos_cache_file = [paths.cache 'pos_samples_PS.mat'];
 
 %current parameters, to compare against the cache file
 new_parameters = struct('sampling',sampling, 'features',features, 'cell_size',cell_size, ...
 	'padding_cells',padding_cells, 'object_size',object_size);
+ 
+ if exist(neg_cache_file, 'file'),
+ 	load(neg_cache_file)  %load data and parameters
+ 	samples = samples(:,:,:,1:20000); 
+	%if the parameters are the same,
+ 	%we're done
+ 	if isequal(parameters, new_parameters),
+ 		disp('Reloaded samples from cache.')        
+        load(pos_cache_file)		
+% 		%compute padding, relative to the object size
+ 		padding = (patch_sz - object_sz) ./ object_sz;		
+ 		return
+ 	end
+ end
 
-if exist(neg_cache_file, 'file'),
-	load(neg_cache_file)  %load data and parameters
-	samples = samples(:,:,:,1:10000);
-	%if the parameters are the same, we're done
-	if isequal(parameters, new_parameters),
-		disp('Reloaded samples from cache.')
-        
-        load(pos_cache_file)
-		
-		%compute padding, relative to the object size
-		padding = (patch_sz - object_sz) ./ object_sz;
-		
-		return
-	end
-end
+% if exist(pos_cache_file,'file')
+%     load(pos_cache_file)
+%     padding = (patch_sz - object_sz) ./ object_sz;
+% else
+%     %otherwise, start from scratch. first, load the positive samples
+%     load_pos_samples;
+% end
 
 load([paths.ps 'annotation/test/train_test/Train.mat']);
 load([paths.ps 'annotation/test/train_test/TestG50.mat']);
-
-%otherwise, start from scratch. first, load the positive samples
-load_pos_samples;
 
 sample_sz = size(pos_samples);
 
@@ -38,66 +41,76 @@ disp('Loading negative samples...')
 
 %compute time
 tic;
-
-%list training image files for all classes
-%images = dataset_list(dataset, 'train', class, false);  %skip images with this class
-images = {};
-for n = 1 : size(Train,1)
-   for k = 1 : size(Train{n,1}.scene,2)
-       image = Train{n,1}.scene(k).imname;
-       images = [images;image]; 
-   end
+num_of_train = 0;
+for k = 1 : size(Train,1)
+   num_of_train = num_of_train + size(Train{k,1}.scene,2);
 end
+n = num_of_train;
 
-n = numel(images);
-
-%dense sampling
-
-%stride size, in cells (vertical and horizontal directions)
-stride_sz = floor(sampling.neg_stride * sample_sz(1:2));
-%stride_sz = floor(sampling.neg_stride * sample_sz(3));
-
+try
+	rand('seed', 0);  %#ok<RAND>
+catch  %#ok<CTCH>
+	rng(0);  %new syntax
+end
 %compute max. number of samples given the image size and stride
 %(NOTE: this is probably a pessimistic estimate!)
-num_neg_samples = numel(images) * prod(floor(sampling.neg_image_size / cell_size ./ stride_sz));
-%num_neg_samples = numel(images) * floor(sample_sz(3) / stride_sz);
+num_neg_samples = (sampling.neg_samples_per_image + 1) * n;
 
 %initialize data structure for all samples, starting with positives
 samples = zeros([sample_sz(1:3), num_neg_samples], 'single');
 
-progress();
-
 idx = 1;
+for i = 1 : size(Train,1)
+   for j = 1 : size(Train{i,1}.scene,2)
+       image = Train{i,1}.scene(j).imname;
+       boxes = Train{i,1}.scene(j).idlocate;
+       im = imread([paths.ps 'Image/SSM/' image]);
+       
+%       ratio = boxes(3) / boxes(4) / aspect_ratio;
+       %center coordinates
+       xc = boxes(1) + boxes(3) / 2;
+       yc = boxes(2) + boxes(4) / 2;
+       sz = object_sz / object_sz(1) * boxes(4);  %rescale to have same height
+       %apply padding in all directions
+       sz = (1 + padding) .* sz;
+       %x and y coordinates to extract. remember all sizes ("sz") are
+       %in Matlab's format (rows, columns)
+       xs = floor(xc - sz(2) / 2) : floor(xc + sz(2) / 2);
+       ys = floor(yc - sz(1) / 2) : floor(yc + sz(1) / 2);
+       %avoid out-of-bounds coordinates (set them to the values at
+       %the borders)
+       bounded_xs = max(1, min(size(im,2), xs));
+       bounded_ys = max(1, min(size(im,1), ys));
+       patch = im(bounded_ys, bounded_xs, :);  %extract the patch
+       %set out-of-bounds pixels to 0
+       patch(ys < 1 | ys > size(im,1), xs < 1 | xs > size(im,2), :) = 0;
+       %resize to the common size
+       patch = imresize(patch, patch_sz, 'bilinear');
+       %extract features (e.g., HOG)
+       sample = get_features(patch, features, cell_size);
+       
+       samples(:,:,:,idx) = sample;
+       idx = idx + 1;
+       
+        %extract features (e.g., HOG)
+		x = get_features(im, features, cell_size);
 
-for f = 1:n,
-    %load image and bounding box info
-    %[boxes, im] = dataset_image(dataset, class, images{f});
-    im = imread([paths.ps 'Image/SSM/' images{f}]);
-    if size(im,3) == 1,
-        im = repmat(im, [1, 1, 3]);  %from grayscale to RGB
-    end  
-
-    %ensure maximum size
-    if size(im,1) > sampling.neg_image_size(1),
-        im = imresize(im, [sampling.neg_image_size(1), NaN], 'bilinear');
-    end
-    if size(im,2) > sampling.neg_image_size(2),
-        im = imresize(im, [NaN, sampling.neg_image_size(2)], 'bilinear');
-    end
-    
-    %extract features 
-    x = get_features(im, features, cell_size);
-  
-    %extract subwindows, given the specified stride
-    for r = 1 : stride_sz(1) : size(x,1) - sample_sz(1) + 1,
-        for c = 1 : stride_sz(2) : size(x,2) - sample_sz(2) + 1
-            %store the sample
-            samples(:,:,:,idx) = x(r : r+sample_sz(1)-1, c : c+sample_sz(2)-1, :);
-            idx = idx + 1;
+		%if image isn't big enough for a full patch, skip it
+		if size(x,1) < sample_sz(1) || size(x,2) < sample_sz(2),
+			continue
         end
-    end
+        
+		for s = 1:sampling.neg_samples_per_image,
+			%random position, fully inside image
+			r = randi([1, size(x,1) - sample_sz(1)]);
+			c = randi([1, size(x,2) - sample_sz(2)]);
 
-    progress(f, n);
+			%extract sample and store it
+			samples(:,:,:, idx) = x(r : r + sample_sz(1) - 1, c : c + sample_sz(2) - 1, :);
+			idx = idx + 1;
+		end
+       
+   end
 end
 
 assert(idx > 1, 'No valid negative samples to load.')

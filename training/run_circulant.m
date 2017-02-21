@@ -3,9 +3,9 @@
 load_samples;
 
 %enable parallel execution
- if parallel && matlabpool('size') == 0,
- 	matlabpool open
- end
+% if parallel && matlabpool('size') == 0,
+% 	matlabpool open
+% end
 %make sure the needed functions are in the path of all workers (work around a MATLAB bug)
 addpath('./detection', './evaluation', './training', './utilities', './libraries')
 
@@ -15,10 +15,11 @@ else
     step = 2;
 end
 
-% n = 1
+ n = num_pos_samples * 2;
+ %n = 2;
 % load([paths.ps 'annotation/test/train_test/TestG50.mat']);
 
-for i = 1800 : step : 1802,
+for i = 4001 : step : n,
     
     pos_id = pos_ids(i);
     
@@ -75,7 +76,7 @@ for i = 1800 : step : 1802,
                 y(1:step) = pos_labels(r,c);
 
                 %train classifier for this frequency
-                weights(r,c,:) = linear_training(training, double(permute(samples(r,c,:,:), [4, 3, 1, 2])), y);
+                weights(r,c,:) = linear_training(training, double(permute(all_samples(r,c,:,:), [4, 3, 1, 2])), y);
             end
 
             progress(r, sz(1));
@@ -135,27 +136,14 @@ for i = 1800 : step : 1802,
     weights = weights(1 + crop : end - crop, 1 + crop : end - crop, :);
     assert(~isempty(weights), 'Too much cropping.')
 
-    if show_plots,
-        %weights visualization (positive on the left, negative on the right)
-        w_norm = max(abs(weights(:)));
-        figure('Name', ['Weight range: ' num2str(w_norm) ', bias: ' num2str(bias)])
-        try  %#ok<ALIGN>
-            imshow(vl_hog('render', 0.4 * single([max(0, weights / w_norm), max(0, -weights / w_norm)])));
-        catch, end  %#ok<CTCH>
-    end
-
     save_file_name = [num2str((i + 1) / step) '_G50'];
     
     if save_weights,  %save template weights to a MAT file
-        if ~exist([paths.cache 'weights/'], 'dir'),
-            mkdir([paths.cache 'weights/'])
+        if ~exist([paths.cache 'weights_2/'], 'dir'),
+            mkdir([paths.cache 'weights_2/'])
         end
-        save([paths.cache 'weights/' save_file_name '_weights.mat'], 'weights', 'bias', 'object_sz')
+        save([paths.cache 'weights_2/' save_file_name '_weights.mat'], 'weights', 'bias', 'object_sz')
     end
-    
-    %run evaluation
-%     evaluate_detector( i , weights, bias, object_sz, cell_size, features, ...
-% 	  detection, paths, save_file_name, save_plots, show_plots, show_detections, parallel,TestG50,50);
 
 end
 

@@ -2,25 +2,25 @@
 clear samples;  %avoid stressing memory use
 clear pos_samples;
 
-neg_cache_file = [paths.cache 'neg_samples_PS.mat'];
-pos_cache_file = [paths.cache 'pos_samples_PS.mat'];
+neg_cache_file = [paths.cache 'neg_samples_PS_2.mat'];
+pos_cache_file = [paths.cache 'pos_samples_PS_2.mat'];
 
 %current parameters, to compare against the cache file
 new_parameters = struct('sampling',sampling, 'features',features, 'cell_size',cell_size, ...
 	'padding_cells',padding_cells, 'object_size',object_size);
 
-if exist(neg_cache_file, 'file'),
-	load(neg_cache_file)  %load data and parameters
+%if exist(neg_cache_file, 'file'),
+%	load(neg_cache_file)  %load data and parameters
 	%samples = samples(:,:,:,1:10000);
 	%if the parameters are the same, we're done
-	if isequal(parameters, new_parameters),
-		disp('Reloaded samples from cache.')        
-        load(pos_cache_file)		
+%	if isequal(parameters, new_parameters),
+%		disp('Reloaded samples from cache.')        
+%        load(pos_cache_file)		
 		%compute padding, relative to the object size
-		padding = (patch_sz - object_sz) ./ object_sz;		
-		return
-	end
-end
+%		padding = (patch_sz - object_sz) ./ object_sz;		
+%		return
+%	end
+%end
 
 load([paths.ps 'annotation/test/train_test/Train.mat']);
 load([paths.ps 'annotation/test/train_test/TestG50.mat']);
@@ -48,7 +48,7 @@ catch  %#ok<CTCH>
 end
 %compute max. number of samples given the image size and stride
 %(NOTE: this is probably a pessimistic estimate!)
-num_neg_samples = (sampling.neg_samples_per_image + 1)* n;
+num_neg_samples = (sampling.neg_samples_per_image + 1) * n;
 
 %initialize data structure for all samples, starting with positives
 samples = zeros([sample_sz(1:3), num_neg_samples], 'single');
