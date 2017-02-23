@@ -25,7 +25,8 @@ target_magnitude = 1;
 %train a complex SVR (liblinear) with no bias term
 training.type = 'svr';
 training.regularization = 1e-2;  %SVR-C, obtained by cross-validation on a log. scale
-training.epsilon = 5e-3;
+%training.regularization = 2^-4
+%training.epsilon = 5e-3;
 training.complex = true;
 training.bias_term = 0;
 
@@ -36,8 +37,13 @@ addpath('./detection', './evaluation', './training', './utilities', './libraries
 run('/home/share/yafang/vlfeat-0.9.20/toolbox/vl_setup');
 
 %main script for training and evaluation
-%run_circulant;
 
+for G = -7 : -2,
+    training.epsilon = 2^G
+    
+%    run_circulant;
+    run_evaluation_2;
+end
 %load_samples;
-%run_evaluation;
-run_evaluation_2;
+
+%run_evaluation_3;

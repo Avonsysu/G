@@ -2,9 +2,11 @@ function color_feature = color_2(im,cell_size,num_bins)
 
     [M,N,L] = size(im);
 
-    a = floor(M/cell_size);
-    b = floor(N/cell_size);
-
+    a = round(M/cell_size);
+    b = round(N/cell_size);
+    
+    im = imresize(im,[a*cell_size,b*cell_size]);
+    
     c = L;
 
     f1 = zeros(a,b,48);

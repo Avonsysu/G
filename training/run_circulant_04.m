@@ -3,9 +3,9 @@
 load_samples;
 
 %enable parallel execution
-% if parallel && matlabpool('size') == 0,
-% 	matlabpool open
-% end
+if parallel && matlabpool('size') == 0,
+    matlabpool open
+end
 %make sure the needed functions are in the path of all workers (work around a MATLAB bug)
 addpath('./detection', './evaluation', './training', './utilities', './libraries')
 
@@ -136,7 +136,7 @@ for i = 1 : step : n,
     weights = weights(1 + crop : end - crop, 1 + crop : end - crop, :);
     assert(~isempty(weights), 'Too much cropping.')
 
-    save_file_name = [num2str((i + 1) / step) '_G50_g' num2str(G)];
+    save_file_name = [num2str((i + 1) / step) '_G50-4'];
     
     if save_weights,  %save template weights to a MAT file
         if ~exist([paths.cache 'weights_3/'], 'dir'),

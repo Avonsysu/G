@@ -136,7 +136,7 @@ for i = 1 : step : n,
     weights = weights(1 + crop : end - crop, 1 + crop : end - crop, :);
     assert(~isempty(weights), 'Too much cropping.')
 
-    save_file_name = [num2str((i + 1) / step) '_G50_g' num2str(G)];
+    save_file_name = [num2str((i + 1) / step) '_G50+7'];
     
     if save_weights,  %save template weights to a MAT file
         if ~exist([paths.cache 'weights_3/'], 'dir'),

@@ -37,21 +37,13 @@ function x = get_features(im, features, cell_size)
         if size(im,3) == 1,
 			im = repmat(im, [1, 1, 3]);  %from grayscale to RGB
         end
-        blockSize = cell_size;
-        I = im;
-        [M N L] = size(I);
         
-        a = floor(M/blockSize);
-        b = floor(N/blockSize);
-        x = [];
-        parfor i=1:a
-          for j=1:b
-              patch = I( (i-1)*blockSize+1 : i*blockSize , (j-1)*blockSize+1 : j * blockSize,:);
-              color_feature = color(double(patch));
-              hog_feature = double(hog(patch));
-              x(i,j,:) = [color_feature;hog_feature];
-          end
-        end 
+        color_features = color_2(double(im),cell_size,16);
+        
+        hog_features = vl_hog(single(im), cell_size, ...
+			'NumOrientations', features.hog_orientations, 'BilinearOrientations');
+        
+        x = cat(3,color_features,hog_features);
 	end
 end
 
